@@ -19,7 +19,9 @@ const ScannerPopup = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("pros");
 
-  const genAI = new GoogleGenerativeAI("AIzaSyDuv0PEjPCpGRqhdgUDu5PqCS3YAmj5xaI");
+  // ✅ Load API keys securely
+  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+  const VISION_API_KEY = import.meta.env.VITE_GOOGLE_VISION_API_KEY;
 
   const capture = () => {
     const imageSrc = webcamRef.current.getScreenshot();
@@ -33,7 +35,7 @@ const ScannerPopup = ({ onClose }) => {
 
     try {
       const visionResponse = await fetch(
-        "https://vision.googleapis.com/v1/images:annotate?key=AIzaSyA50GBvxbs73JECH2FdI2WG6HEE3fFjaCk",
+        `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -77,12 +79,11 @@ ${text}`;
       const prosList = output.match(/Pros:(.*?)(Cons:|Environmental Impact:|$)/is)?.[1]?.trim().split("\n") || [];
       const consListRaw = output.match(/Cons:(.*?)(Environmental Impact:|$)/is)?.[1]?.trim().split("\n") || [];
 
-      // Filter out empty and duplicate items
       const cleanedPros = prosList
         .map(line => line.replace(/^-|\*/, "").trim())
         .filter(line => line.length > 0)
         .slice(0, 5);
-      
+
       const cleanedCons = consListRaw
         .map(line => line.replace(/^-|\*/, "").trim())
         .filter(line => line.length > 0)
@@ -264,9 +265,7 @@ ${text}`;
               </button>
             </div>
 
-            <div className="min-h-[200px]">
-              {renderTabContent()}
-            </div>
+            <div className="min-h-[200px]">{renderTabContent()}</div>
           </div>
         )}
       </div>
